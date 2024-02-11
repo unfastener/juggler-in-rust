@@ -1,0 +1,19 @@
+Parameters to generate juggler_title.png image
+----------------------------------------------
+
+let bounce_secs = 0.9;
+
+let camera_distance = 8.0;
+let camera_secs = 0.0;
+
+scene.camera = Camera {
+    pos: [
+        camera_distance * camera_angle.sin(),
+        1.0,
+        -camera_distance * camera_angle.cos(),
+    ],
+    right: [1.0, 0.0, 0.0],
+    up: [0.0, 1.0, 0.0],
+    forward: [0.0, 0.0, 1.0],
+};
+scene.camera.look_at([0.0, 6.0, 0.0]);
