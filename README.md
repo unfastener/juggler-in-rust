@@ -37,6 +37,72 @@ geometry data for the juggler "robot" figure. I simply had to plug the
 data in my raytracer, to see how fast it would run on today's computers…
 
 
+## Getting Started
+
+You can download one of the [prebuilt
+binaries](https://github.com/unfastener/juggler-in-rust/releases) for
+32- and 64-bit Raspberry Pi computers.
+
+Otherwise, you have to compile the program on your computer. In case you
+are new to building and running Rust programs, below are some basic
+instructions.
+
+
+### Building and Running
+
+⚠️ **Note:** For any Raspberry Pi model with less than 4 GB of memory,
+it is necessary to increase the swap size beyond the default 100 MB to
+successfully complete the build process. You can do this by setting
+`CONF_SWAPSIZE` to `2048` in the _/etc/dphys-swapfile_ configuration
+file – which increases the swap size to 2 GB – and rebooting.
+
+To build the program from scratch, first make sure you have a working
+[Rust build environment](https://www.rust-lang.org/learn/get-started).
+Then, clone the repository to your computer (do not type the `$` in the
+commands below):
+
+```
+$ git clone https://github.com/unfastener/juggler-in-rust.git
+```
+
+To build the release binary:
+
+```
+$ cd juggler-in-rust
+$ cargo build --release
+```
+
+This may take a while. See section [Performance](#Performance) below for
+typical build times.
+
+You can then run the program:
+
+```
+$ cargo run
+```
+
+, or alternatively:
+
+```
+$ target/release/juggler-in-rust
+```
+
+
+### Controls
+
+The program has a few keyboard controls:
+
+- `1`, `2`, `3`, `4`, `5`: Control juggler speed
+
+- `6`, `7`, `8`, `9`, `0`: Control camera direction and speed
+
+- `f`, `F11`: Toggle fullscreen
+
+- `q`, `Esc`: Quit program
+
+- `b`: Toggle "extra geometry"
+
+
 ## Technical Details
 
 According to Eric Graham, the author of the original Juggler demo, a
@@ -52,15 +118,19 @@ select a suitable render size that meets or exceeds the target
 framerate. In addition to the juggling animation, the camera also
 rotates around the juggler.
 
-This is a pure software raytracer implementation. It uses the
+This is a pure-CPU raytracer implementation. It uses the
 [softbuffer](https://crates.io/crates/softbuffer) and
 [winit](https://crates.io/crates/winit) Rust crates for displaying the
 window, and [vecmath](https://crates.io/crates/vecmath) for the vector
-mathematics. No GPU resources are used. A software-only nearest-neighbor
+mathematics. No GPU resources are used. A CPU-only nearest-neighbor
 interpolation algorithm is used to scale the rendered image to the
 output window size.
 
 There are as many render threads as there are (logical) cores available.
+
+
+### Performance
+
 Here's how the program runs on various Raspberry Pi versions:
 
 | Board | Cores | Frequency | RAM | Disk | Full Release Build Time | Display | Render Size | FPS |
@@ -71,12 +141,15 @@ Here's how the program runs on various Raspberry Pi versions:
 | Pi Zero W | 1 × ARM11 | 1000 MHz | 512 MB | Micro-SD | 1h29m55s | X11 | 80×80 | 4–5 |
 
 
-In these tests, the Pi 3B+, 4 and 5 were running Raspberry Pi OS 12
-(Bookworm) 64-bit. The Zero W was running Raspberry Pi OS 11 (Bullseye)
-32-bit. As you can see, full build times can be quite significant for
-Rust programs, due to the large number of dependencies that the crates
-pull in. Pi 3B+ and Zero W need a bigger swap than the default 100 MB,
-to be able to complete the build.
+These test results are with Pi OS 12 (Bookworm) 64-bit, except for the
+Pi Zero W with Raspberry Pi OS 11 (Bullseye) 32-bit.
+
+As you can see, full build times can be quite significant for Rust
+programs, due to the large number of dependencies that the crates pull
+in.
+
+
+### Caveats
 
 There are some notable differences to the original raytraced scene:
 
