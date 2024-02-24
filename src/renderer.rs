@@ -5,7 +5,9 @@ use num_cpus;
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
-use vecmath::{vec3_add, vec3_cross, vec3_dot, vec3_len, vec3_normalized, vec3_scale, vec3_sub, Vector3};
+use vecmath::{
+    vec3_add, vec3_cross, vec3_dot, vec3_len, vec3_normalized, vec3_scale, vec3_sub, Vector3,
+};
 
 use crate::scene_juggler::populate_scene;
 

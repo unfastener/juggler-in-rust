@@ -5,9 +5,9 @@ use std::cmp::min;
 use std::num::NonZeroU32;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use winit::dpi::{LogicalSize, PhysicalSize};
+use winit::dpi::PhysicalSize;
 use winit::event::{ElementState, Event, KeyEvent, StartCause, WindowEvent};
-use winit::event_loop::{ControlFlow, EventLoop};
+use winit::event_loop::{ControlFlow, EventLoopBuilder};
 use winit::keyboard::{Key, NamedKey};
 use winit::window::{Fullscreen, WindowBuilder};
 
@@ -15,6 +15,11 @@ use crate::renderer::{SceneOptions, SharedRenderer};
 
 const WINDOW_REDRAW_PERIOD: f64 = 0.5; // Window redraw period in seconds
 const FPS_REFRESH_PERIOD: f64 = 0.25; // Update FPS counter this often
+
+#[derive(Debug, Clone, Copy)]
+enum UserEvent {
+    RequestRedraw,
+}
 
 pub struct Window {
     renderer: SharedRenderer,
@@ -59,7 +64,9 @@ impl Window {
         };
 
         // Create a Winit Window and everything else needed to draw to it and handle events
-        let event_loop = EventLoop::new().unwrap();
+        let event_loop = EventLoopBuilder::<UserEvent>::with_user_event()
+            .build()
+            .unwrap();
         let winit_window = Arc::new(
             WindowBuilder::new()
                 .with_min_inner_size(PhysicalSize::new(width as u32, height as u32))
@@ -89,8 +96,9 @@ impl Window {
             }
 
             // Even if None is returned, it is not an error
-            let _ = winit_window.request_inner_size(LogicalSize::new(width as u32, height as u32));
+            let _ = winit_window.request_inner_size(PhysicalSize::new(width as u32, height as u32));
 
+            // Only consider the first monitor
             break;
         }
 
@@ -100,9 +108,11 @@ impl Window {
 
         // Set completion callback to send a redraw request to the Winit window
         {
-            let winit_window = winit_window.clone();
+            let event_loop_proxy = event_loop.create_proxy();
             self.renderer.set_completion_callback(move |frame_time| {
-                winit_window.request_redraw();
+                event_loop_proxy
+                    .send_event(UserEvent::RequestRedraw)
+                    .unwrap();
 
                 if false {
                     // DEBUG: Print render duration
@@ -123,9 +133,16 @@ impl Window {
             option_1: false,
         };
 
+        let mut initialized = false;
+
         // Run event loop
         event_loop
             .run(move |event, elwt| {
+                if false {
+                    // DEBUG: Print events
+                    println!("{:?}", event);
+                }
+
                 match event {
                     // Handle start event
                     Event::NewEvents(StartCause::Init) => {
@@ -143,17 +160,22 @@ impl Window {
                         start_time = Instant::now();
                         fps_counter.reset();
                         self.renderer.start_render(Duration::ZERO, &scene_options);
+                        initialized = true;
                     }
                     // Handle timer event
                     Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
+                        // DEBUG: No timer required, for now
                         if false {
-                            // DEBUG: No timer required, for now
                             // Event timeout expired
                             elwt.set_control_flow(ControlFlow::WaitUntil(
                                 Instant::now() + timer_duration,
                             ));
                             winit_window.request_redraw();
                         }
+                    }
+                    // Handle requests from other threads
+                    Event::UserEvent(_) => {
+                        winit_window.request_redraw();
                     }
                     // Handle window redraw request event
                     Event::WindowEvent {
@@ -168,8 +190,10 @@ impl Window {
                             // Resize surface if needed
                             surface.resize(width, height).unwrap();
 
-                            // Wait for all threads to complete
-                            self.renderer.wait_for_completion(false);
+                            if initialized {
+                                // Wait for all threads to complete
+                                self.renderer.wait_for_completion(false);
+                            }
 
                             // Update title with new FPS every once in a while
                             if let Some(fps) = fps_counter.new_frame(self.renderer.get_duration()) {
@@ -196,10 +220,13 @@ impl Window {
                             // Update window contents with surface contents
                             buffer.present().unwrap();
 
-                            // Start rendering another frame
-                            let duration_since_start = Instant::now().duration_since(start_time);
-                            self.renderer
-                                .start_render(duration_since_start, &scene_options);
+                            if initialized {
+                                // Start rendering another frame
+                                let duration_since_start =
+                                    Instant::now().duration_since(start_time);
+                                self.renderer
+                                    .start_render(duration_since_start, &scene_options);
+                            }
                         }
                     }
                     // Handle window close request event
