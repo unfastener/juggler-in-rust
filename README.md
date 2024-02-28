@@ -74,7 +74,7 @@ typical build times.
 You can then run the program:
 
 ```
-$ cargo run
+$ cargo run --release
 ```
 
 , or alternatively:
