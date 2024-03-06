@@ -10,14 +10,18 @@ to run on the [Raspberry Pi](https://www.raspberrypi.com/) series of
 single board computers. Juggler was a famous animation that demonstrated
 the use of raytracing algorithms on a home computer.
 
+Project
+[featured on Hackaday](https://hackaday.com/2024/03/04/the-juggler-in-rust/) on
+March 4, 2024.
+
 ## Backstory
 
 In January 2024, I decided to start learning the Rust programming
 language in earnest. This required a project that was interesting enough
 to keep me motivated—something neither too trivial nor too complicated.
 
-As it happens, an article featured on
-[Hackaday](https://hackaday.com/2024/01/26/a-zx-spectrum-raytracer-in-basic/)
+As it happens, an article
+[featured on Hackaday](https://hackaday.com/2024/01/26/a-zx-spectrum-raytracer-in-basic/)
 gave an idea for the perfect project. In the article, Gabriel Gambetta
 builds a raytracer in ZX Spectrum BASIC. Gabriel had written an
 excellent book that goes into details on how to build your own raytracer
@@ -124,7 +128,7 @@ There are as many render threads as there are (logical) cores available.
 
 ### Performance
 
-Here's how the program runs on various Raspberry Pi versions:
+Here's how the program builds and runs on various Raspberry Pi versions:
 
 | Board     | Cores          | Frequency | RAM    | Disk      | Full Release Build Time | Display | Render Size | FPS   |
 | --------- | -------------- | --------- | ------ | --------- | ----------------------- | ------- | ----------- | ----- |
@@ -135,6 +139,14 @@ Here's how the program runs on various Raspberry Pi versions:
 
 These test results are with Pi OS 12 (Bookworm) 64-bit, except for the
 Pi Zero W with Raspberry Pi OS 11 (Bullseye) 32-bit.
+
+Some other computers, for comparison:
+
+| Device                                             | CPU & Cores             | Frequency | RAM   | Disk        | Full Release Build Time | Display | Render Size | FPS   |
+| -------------------------------------------------- | ----------------------- | --------- | ----- | ----------- | ----------------------- | ------- | ----------- | ----- |
+| 2021 MacBook Pro (MacBookPro18,3)                  | 6+2-core Apple M1 Pro   | 3090 MHz  | 16 GB | Onboard SSD | 7.22s                   | macOS   | 512×512     | 24–26 |
+| 2017 MacBook Pro (MacBookPro14,2)                  | Dual-core Intel Core i5 | 3300 MHz  | 16 GB | Onboard SSD | 29.39s                  | macOS   | 256×256     | 29–31 |
+| 2020 Lenovo Chromebook 3 11" (_$90 new, bargain!_) | Dual-core AMD A6-9220C  | 1800 MHz  | 4 GB  | eMMC        | 4m03s                   | Wayland | 160×160     | 27–29 |
 
 As you can see, full build times can be quite significant for Rust
 programs, due to the large number of dependencies that the crates pull
